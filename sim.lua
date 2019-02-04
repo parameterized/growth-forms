@@ -88,6 +88,7 @@ end
 function Sim:embedStep()
     local velocities = {}
     local pdist = 100
+    local totalvx, totalvy, totalvn = 0, 0, 0
     for vi, v in pairs(self.graph.vertices) do
         local vxe, vye, ven = 0, 0, 0
         local vxu, vyu, vun = 0, 0, 0
@@ -96,9 +97,11 @@ function Sim:embedStep()
             local v2 = self.graph.vertices[v2i]
             local vecx = v2.x - v.x
             local vecy = v2.y - v.y
-            local v12dist = lume.distance(v.x, v.y, v2.x, v2.y)
-            vxe = vxe + vecx*(v12dist - pdist)
-            vye = vye + vecy*(v12dist - pdist)
+            local v2dist = math.sqrt(vecx^2 + vecy^2)
+            vecx = vecx/v2dist
+            vecy = vecy/v2dist
+            vxe = vxe + vecx*(v2dist - pdist)
+            vye = vye + vecy*(v2dist - pdist)
             ven = ven + 1
 
             -- unfolding force
@@ -107,25 +110,29 @@ function Sim:embedStep()
                     local v3 = self.graph.vertices[v3i]
                     local v3vecx = v3.x - v.x
                     local v3vecy = v3.y - v.y
-                    local v23dist = lume.distance(v2.x, v2.y, v3.x, v3.y)
-                    local v3graphDist = v12dist + v23dist
-                    local v3geoDist = lume.distance(v.x, v.y, v3.x, v3.y)
-                    vxu = vxu + v3vecx*(v3geoDist - v3graphDist)
-                    vyu = vyu + v3vecy*(v3geoDist - v3graphDist)
+                    local v3dist = math.sqrt(v3vecx^2 + v3vecy^2)
+                    v3vecx = v3vecx/v3dist
+                    v3vecy = v3vecy/v3dist
+                    vxu = vxu + v3vecx*(v3dist - 2*pdist)
+                    vyu = vyu + v3vecy*(v3dist - 2*pdist)
                     vun = vun + 1
                 end
             end
         end
         if ven == 0 then ven = 1 end
         if vun == 0 then vun = 1 end
-        velocities[vi] = {
-            vx = vxe + vxu/vun*2,
-            vy = vye + vyu/vun*2
-        }
+        local vx = (vxe/ven + vxu/vun)/2
+        local vy = (vye/ven + vyu/vun)/2
+        velocities[vi] = {vx=vx, vy=vy}
+        totalvx = totalvx + vx
+        totalvy = totalvy + vy
+        totalvn = totalvn + 1
     end
+    local meanvx = totalvx/totalvn
+    local meanvy = totalvy/totalvn
     for vi, v in pairs(self.graph.vertices) do
-        v.x = v.x + velocities[vi].vx*0.0001
-        v.y = v.y + velocities[vi].vy*0.0001
+        v.x = v.x + (velocities[vi].vx - meanvx)*0.9
+        v.y = v.y + (velocities[vi].vy - meanvy)*0.9
     end
 end
 
