@@ -35,7 +35,14 @@ menu.addText{text='Menu', y=60, font=fonts.f48}
 menu.addText{text='Modes', y=150, font=fonts.f24}
 
 menu.dimToggle = menu.addToggle{x=150-60, y=200, imgA=gfx.dim2, imgB=gfx.dim3, action=function(v)
-    loadGraph()
+    local dim = '2d'
+    if v == 1 then dim = '3d' end
+    if dim == '2d' then
+        for _, vert in pairs(graph.vertices) do
+            vert.z = lume.random(-0.1, 0.1)
+        end
+    end
+    sim = Sim:new{graph=graph, dim=dim}
 end}
 menu.editToggle = menu.addToggle{x=150+60, y=200, imgA=gfx.play, imgB=gfx.edit, action=function(v)
     if v == 0 then -- play

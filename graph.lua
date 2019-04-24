@@ -26,11 +26,11 @@ end
 
 function Graph:addVertex(p)
     if type(p) ~= 'table' then
-        p = {x=0, y=0, z=0}
+        p = {}
     end
-    p.x = p.x or 0
-    p.y = p.y or 0
-    p.z = p.z or 0
+    if p.x == nil then p.x = lume.random(-0.1, 0.1) end
+    if p.y == nil then p.y = lume.random(-0.1, 0.1) end
+    if p.z == nil then p.z = lume.random(-0.1, 0.1) end
     local i = #self.vertices+1
     self.vertices[i] = p
     return i
@@ -45,6 +45,7 @@ function Graph:removeVertex(i)
 end
 
 function Graph:addEdge(a, b, v)
+    if not self.vertices[a] or not self.vertices[b] or a == b then return end
     v = v or true
     if self.edges[a] == nil then self.edges[a] = {} end
     if self.edges[b] == nil then self.edges[b] = {} end

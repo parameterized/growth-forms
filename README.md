@@ -13,8 +13,20 @@ Instructions for running Love2D games from source can be found [here](https://lo
 If you're on Windows, the easiest way to run is to drag the folder containing main.lua onto either love.exe or a shortcut to love.exe (C:\\Program Files\\LOVE\\love.exe)
 
 ## Controls
-- Left click to move vertices
-- Right click to move camera
-- Scroll to zoom camera
-- R to restart simulation
-- Space to pause simulation
+- Move vertices: Left click
+- Move camera: Right click
+- Zoom camera: Scroll
+- Focus camera on graph: F
+- Reset graph: R
+- Pause simulation: Space
+- Toggle menu: Tab
+
+
+- In 3D mode:
+  - Rotate graph: Middle click
+
+
+- In edit mode:
+  - Add vertex: V
+  - Remove vertex: X
+  - Add/remove edge: Hold E on one vertex and release on another
