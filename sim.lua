@@ -3,6 +3,7 @@ local Sim = {}
 
 function Sim:new(o)
     if o == nil then o = {} end
+    if o.dim == nil then o.dim = '2d' end
     if o.graph == nil then o.graph = Graph:new() end
     setmetatable(o, self)
     self.__index = self
@@ -14,9 +15,10 @@ function Sim:graphStep()
     for i, _ in pairs(self.graph.vertices) do
         table.insert(vlist, i)
     end
+    if #vlist == 0 then return end
     local v1i = lume.randomchoice(vlist)
     local v1 = self.graph.vertices[v1i]
-    local e = lume.clone(self.graph.edges[v1i])
+    local e = lume.clone(self.graph.edges[v1i] or {})
     -- surrounding vertices
     local sv = {}
     for v2i, _ in pairs(e) do
@@ -29,11 +31,11 @@ function Sim:graphStep()
     -- new vertices
     local x = lume.random(v1.x - 50, v1.x + 50)
     local y = lume.random(v1.y - 50, v1.y + 50)
-    local nv1i = self.graph:addVertex(x, y)
+    local nv1i = self.graph:addVertex{x=x, y=y}
     local nv1 = self.graph.vertices[nv1i]
     x = lume.random(v1.x - 50, v1.x + 50)
     y = lume.random(v1.y - 50, v1.y + 50)
-    local nv2i = self.graph:addVertex(x, y)
+    local nv2i = self.graph:addVertex{x=x, y=y}
     local nv2 = self.graph.vertices[nv2i]
     self.graph:addEdge(nv1i, nv2i)
     if #sv == 1 then
@@ -63,7 +65,7 @@ function Sim:graphStep()
             self.graph:addEdge(nv1i, sv2i)
             self.graph:addEdge(nv2i, sv1i)
         end
-    else
+    elseif #sv ~= 0 then
         -- todo: check neighbor connection degrees, connect it and opposite to both
         sv = lume.shuffle(sv)
         self.graph:addEdge(nv1i, sv[1])
@@ -82,7 +84,6 @@ function Sim:graphStep()
             end
         end
     end
-    numVerts = numVerts + 1
 end
 
 function Sim:embedStep()
@@ -92,7 +93,7 @@ function Sim:embedStep()
     for vi, v in pairs(self.graph.vertices) do
         local vxe, vye, ven = 0, 0, 0
         local vxu, vyu, vun = 0, 0, 0
-        for v2i, _ in pairs(self.graph.edges[vi]) do
+        for v2i, _ in pairs(self.graph.edges[vi] or {}) do
             -- edge length force
             local v2 = self.graph.vertices[v2i]
             local vecx = v2.x - v.x
@@ -105,7 +106,7 @@ function Sim:embedStep()
             ven = ven + 1
 
             -- unfolding force
-            for v3i, _ in pairs(self.graph.edges[v2i]) do
+            for v3i, _ in pairs(self.graph.edges[v2i] or {}) do
                 if v3i ~= vi then
                     local v3 = self.graph.vertices[v3i]
                     local v3vecx = v3.x - v.x

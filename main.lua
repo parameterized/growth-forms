@@ -1,42 +1,40 @@
 
+require 'loadassets'
 lume = require 'lume'
 Camera = require 'camera'
 camera = Camera()
 Graph = require 'graph'
 Sim = require 'sim'
+require 'menu'
 
-ssx, ssy = love.graphics.getDimensions()
+doGraphStep = true
 
-love.filesystem.setIdentity(love.window.getTitle())
-math.randomseed(love.timer.getTime())
-
-simulate = true
+defaultGraph = Graph:new()
+local v1 = defaultGraph:addVertex{x=ssx/2, y=ssy/2 - 85}
+local v2 = defaultGraph:addVertex{x=ssx/2, y=ssy/2 + 85}
+local v3 = defaultGraph:addVertex{x=ssx/2 - 85, y=ssy/2}
+local v4 = defaultGraph:addVertex{x=ssx/2 + 85, y=ssy/2}
+local v5 = defaultGraph:addVertex{x=ssx/2, y=ssy/2 - 170}
+local v6 = defaultGraph:addVertex{x=ssx/2, y=ssy/2 + 170}
+defaultGraph:addEdge(v1, v2)
+defaultGraph:addEdge(v3, v4)
+defaultGraph:addEdge(v1, v4)
+defaultGraph:addEdge(v4, v2)
+defaultGraph:addEdge(v2, v3)
+defaultGraph:addEdge(v3, v1)
+defaultGraph:addEdge(v1, v5)
+defaultGraph:addEdge(v2, v6)
 
 function love.load()
-    graph = Graph:new()
-    local v1 = graph:addVertex(ssx/2, ssy/2 - 85)
-    local v2 = graph:addVertex(ssx/2, ssy/2 + 85)
-    local v3 = graph:addVertex(ssx/2 - 85, ssy/2)
-    local v4 = graph:addVertex(ssx/2 + 85, ssy/2)
-    local v5 = graph:addVertex(ssx/2, ssy/2 - 170)
-    local v6 = graph:addVertex(ssx/2, ssy/2 + 170)
-    graph:addEdge(v1, v2)
-    graph:addEdge(v3, v4)
-    graph:addEdge(v1, v4)
-    graph:addEdge(v4, v2)
-    graph:addEdge(v2, v3)
-    graph:addEdge(v3, v1)
-    graph:addEdge(v1, v5)
-    graph:addEdge(v2, v6)
-
-    sim = Sim:new{graph=graph}
+    baseGraph = defaultGraph:clone()
+    loadGraph()
 
     timer = 1
-    numVerts = 4
     closestToMouse = 1
     ctmDist = 0
     heldVertex = nil
     regrab = false
+    edgeVertex = 1
 
     camera.x = ssx/2
     camera.y = ssy/2
@@ -45,15 +43,22 @@ function love.load()
     collectgarbage()
 end
 
+function loadGraph()
+    graph = baseGraph:clone()
+    sim = Sim:new{graph=graph}
+end
+
 function love.update(dt)
-    if simulate then
-        timer = timer - dt*3
-        if timer < 0 then
-            timer = timer + 1
+    menu.update(dt)
+
+    timer = timer - dt*3
+    if timer < 0 then
+        timer = timer + 1
+        if doGraphStep and menu.editToggle.selected == 0 then -- play
             sim:graphStep()
         end
-        sim:embedStep()
     end
+    sim:embedStep()
 
     local mx, my = camera:screen2world(love.mouse.getPosition())
     ctmDist = nil
@@ -80,18 +85,52 @@ function love.update(dt)
 end
 
 function love.keypressed(k, scancode, isrepeat)
+    menu.keypressed(k, scancode, isrepeat)
+    if menu.editToggle.selected == 1 then -- edit
+        if k == 'x' then
+            graph:removeVertex(closestToMouse)
+        elseif k == 'v' then
+            edgeVertex = closestToMouse
+        elseif k == 'e' then
+            edgeVertex = closestToMouse
+        end
+    end
     if k == 'r' then
         love.load()
     elseif k == 'space' then
-        simulate = not simulate
+        doGraphStep = not doGraphStep
     elseif k == 'escape' then
         love.event.quit()
     end
 end
 
+function love.keyreleased(k, scancode)
+    local mx, my = camera:screen2world(love.mouse.getPosition())
+    if menu.editToggle.selected == 1 then -- edit
+        if k == 'v' then
+            local v1 = edgeVertex
+            local v2 = graph:addVertex{x=mx, y=my}
+            graph:addEdge(v1, v2)
+        elseif k == 'e' then
+            local v1, v2 = edgeVertex, closestToMouse
+            if v1 ~= v2 then
+                if graph.edges[v1] and graph.edges[v1][v2] then
+                    graph:removeEdge(v1, v2)
+                else
+                    graph:addEdge(v1, v2)
+                end
+            end
+        end
+    end
+end
+
 function love.mousepressed(x, y, btn, isTouch)
-    if btn == 1 then
-        heldVertex = closestToMouse
+    if x < menu.x then
+        if btn == 1 then
+            heldVertex = closestToMouse
+        end
+    else
+        menu.mousepressed(x, y, btn, isTouch)
     end
 end
 
@@ -117,4 +156,5 @@ function love.draw()
     camera:set()
     graph:draw()
     camera:reset()
+    menu.draw()
 end
