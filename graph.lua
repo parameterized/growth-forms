@@ -63,6 +63,7 @@ function Graph:removeEdge(a, b)
 end
 
 function Graph:draw()
+    local mx, my = camera:screen2world(love.mouse.getPosition())
     love.graphics.setColor(0.8, 0.8, 0.8)
     love.graphics.setLineWidth(2)
     for v1i, t in pairs(self.edges) do
@@ -72,6 +73,26 @@ function Graph:draw()
             love.graphics.line(v1.x, v1.y, v2.x, v2.y)
         end
     end
+    love.graphics.setColor(0.6, 0.6, 0.8)
+    if menu.editToggle.selected == 1 then -- edit
+        if love.keyboard.isDown('v') then
+            local v = graph.vertices[edgeVertex]
+            if v then
+                love.graphics.line(v.x, v.y, mx, my)
+                love.graphics.circle('fill', mx, my, 5)
+            end
+        elseif love.keyboard.isDown('e') then
+            local v1 = graph.vertices[edgeVertex]
+            local v2 = graph.vertices[closestToMouse]
+            if v1 and v2 then
+                if graph.edges[edgeVertex] and graph.edges[edgeVertex][closestToMouse] then
+                    love.graphics.setColor(0.8, 0.6, 0.6)
+                end
+                love.graphics.line(v1.x, v1.y, v2.x, v2.y)
+            end
+        end
+    end
+    love.graphics.setColor(0.8, 0.8, 0.8)
     for _, v in pairs(self.vertices) do
         love.graphics.circle('fill', v.x, v.y, 5)
     end

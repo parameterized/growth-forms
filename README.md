@@ -6,6 +6,8 @@ Graph based growth simulation<br>
 <!--*Current version: 0.1.0*<br>-->
 *Uses Love2D version 11.2.0*
 
+Development has moved to a similar project here: https://github.com/parameterized/harmonic-growth (runnable in browser)
+
 ## Running
 Windows builds will be on the [releases](https://github.com/parameterized/tier/releases) page
 

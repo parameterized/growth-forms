@@ -118,6 +118,7 @@ function love.keypressed(k, scancode, isrepeat)
         end
         if sumn == 0 then sumn = 1 end
         local std = math.sqrt(sumd/sumn)
+        if std == 0 then std = 50 end
         camera.x = meanx
         camera.y = meany
         camera.scale = 1/(std/120)

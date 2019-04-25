@@ -102,6 +102,7 @@ function Sim:embedStep()
             local vecy = v2.y - v.y
             local vecz = self.dim == '2d' and 0 or v2.z - v.z
             local v2dist = math.sqrt(vecx^2 + vecy^2 + vecz^2)
+            if v2dist == 0 then v2dist = 0.1 end
             vecx = vecx/v2dist
             vecy = vecy/v2dist
             vecz = vecz/v2dist
@@ -118,6 +119,7 @@ function Sim:embedStep()
                     local v3vecy = v3.y - v.y
                     local v3vecz = self.dim == '2d' and 0 or v3.z - v.z
                     local v3dist = math.sqrt(v3vecx^2 + v3vecy^2 + v3vecz^2)
+                    if v3dist == 0 then v3dist = 0.1 end
                     v3vecx = v3vecx/v3dist
                     v3vecy = v3vecy/v3dist
                     v3vecz = v3vecz/v3dist
